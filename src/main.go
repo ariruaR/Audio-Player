@@ -15,18 +15,14 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("Hello")
 	w.Resize(fyne.NewSize(500, 500))
-	title := widget.NewLabelWithStyle("title", fyne.TextAlignCenter, fyne.TextStyle{
-		Bold:      true,
-		Italic:    false,
-		Monospace: false,
-		Underline: false,
-	})
-	artist := widget.NewLabelWithStyle("artist", fyne.TextAlignCenter, fyne.TextStyle{
-		Bold:      true,
-		Italic:    false,
-		Monospace: false,
-		Underline: false,
-	})
+	title := canvas.NewText("Title", color.White)
+	title.Alignment = fyne.TextAlignCenter
+	title.TextSize = 25
+
+	artist := canvas.NewText("Artist", color.White)
+	artist.Alignment = fyne.TextAlignCenter
+	artist.TextSize = 15
+
 	rectangle := canvas.NewRectangle(color.White)
 	rectangle.SetMinSize(fyne.NewSize(100, 100))
 	shadow := canvas.NewRectangle(color.RGBA{255, 248, 220, 255})
@@ -38,11 +34,6 @@ func main() {
 
 	musicCover := container.New(layout.NewCenterLayout(), shadowContainer)
 
-	progressbar := widget.NewProgressBar()
-	progressbar.SetValue(0.25)
-	progressbar.Resize(fyne.NewSize(200, 40))
-	sizedBar := container.New(layout.NewCenterLayout(), progressbar)
-	sizedBar.Resize(fyne.NewSize(30, 300))
 	playBtn := widget.NewButton("PLAY", func() {})
 	backBtn := widget.NewButton("<=", func() {})
 	nextBtn := widget.NewButton("=>", func() {})
@@ -52,18 +43,59 @@ func main() {
 	)
 	background := canvas.NewRectangle(color.RGBA{50, 50, 50, 255})
 
+	slider := widget.NewSlider(0, 180) // 180 секунд — пример
+	slider.Value = 0
+	slider.Step = 1
+	slider.OnChanged = func(value float64) {
+		// Здесь можно обновлять отображение времени или перематывать трек
+	}
+
+	currentTime := widget.NewLabel("0:00")
+	totalTime := widget.NewLabel("3:00")
+	timeRow := container.NewHBox(currentTime, widget.NewLabel(" "), totalTime)
+
 	content := container.NewVBox(
 		musicCover,
 		title,
 		artist,
-		sizedBar,
+		slider,
+		timeRow,
 		btnContainer,
 	)
+	musicData := []string{
+		"Song 1",
+		"Song 2",
+		"Song 3",
+		"Song 4",
+		"Song 5",
+		"Song 6",
+		"Song 7",
+		"Song 8",
+		"Song 9",
+		"Song 10",
+		"Song 11",
+		"Song 12",
+		"Song 13",
+		"Song 14",
+	}
 
-	// Накладываем контент на фон
+	musicList := widget.NewList(
+		func() int { return len(musicData) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(musicData[i])
+		},
+	)
+	musicList.Resize(fyne.NewSize(100, musicList.Size().Height))
+	musicList.OnSelected = func(id widget.ListItemID) {
+		selectedSong := musicData[id]
+		title.Text = selectedSong
+	}
+	contentContainer := container.NewGridWithColumns(2, musicList, container.NewCenter(content))
+	// Накладываем контент на фо
 	mainContainer := container.NewStack(
 		background,
-		container.NewCenter(content),
+		contentContainer,
 	)
 
 	w.SetContent(mainContainer)
