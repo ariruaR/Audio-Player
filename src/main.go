@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -47,12 +48,27 @@ func main() {
 	)
 	sliderComponent := slider.NewSliderComponent(0, 180, "3:00", func(value float64) {})
 	sliderComponent.Slider.OnChanged = func(value float64) {
-		sliderComponent.CurrentTime.SetText(fmt.Sprintf("%d:%d", int(value/60), int(value)%60))
+		sliderComponent.CurrentTime.SetText(fmt.Sprintf("%d:%02d", int(value/60), int(value)%60))
 	}
 
 	musicCover := container.New(layout.NewCenterLayout(), shadowContainer)
 
 	playBtn := widget.NewButton("PLAY", func() {})
+	playBtn.OnTapped = func() {
+		audioPanel, err := audioComponent.OpenAudioFile("C:/Users/Ariruar/Desktop/AudioPlayer/Audio-Player/src/audio/" + musicData[currentSong])
+		if err != nil {
+			log.Println("Error opening audio file:", err)
+			return
+		}
+		if playBtn.Text == "PLAY" {
+			playBtn.SetText("PAUSE")
+			audioComponent.PlayAudio(audioPanel)
+		} else {
+			playBtn.SetText("PLAY")
+			audioComponent.PauseAudio(audioPanel)
+		}
+		playBtn.Refresh()
+	}
 	backBtn := widget.NewButton("<=", func() {
 		if currentSong > 0 {
 			currentSong--
