@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -9,6 +10,9 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+
+	audioComponent "AudioPlayer/src/components/audioComponent"
+	slider "AudioPlayer/src/components/slider"
 )
 
 func main() {
@@ -23,22 +27,8 @@ func main() {
 	artist.Alignment = fyne.TextAlignCenter
 	artist.TextSize = 15
 
-	musicData := []string{
-		"Song 1",
-		"Song 2",
-		"Song 3",
-		"Song 4",
-		"Song 5",
-		"Song 6",
-		"Song 7",
-		"Song 8",
-		"Song 9",
-		"Song 10",
-		"Song 11",
-		"Song 12",
-		"Song 13",
-		"Song 14",
-	}
+	musicData := audioComponent.GetAudioFiles("C:/Users/Ariruar/Desktop/AudioPlayer/Audio-Player/src/audio")
+
 	currentSong := 0
 
 	updateSong := func() {
@@ -55,6 +45,10 @@ func main() {
 		shadow,
 		rectangle,
 	)
+	sliderComponent := slider.NewSliderComponent(0, 180, "3:00", func(value float64) {})
+	sliderComponent.Slider.OnChanged = func(value float64) {
+		sliderComponent.CurrentTime.SetText(fmt.Sprintf("%d:%d", int(value/60), int(value)%60))
+	}
 
 	musicCover := container.New(layout.NewCenterLayout(), shadowContainer)
 
@@ -63,12 +57,20 @@ func main() {
 		if currentSong > 0 {
 			currentSong--
 			updateSong()
+			sliderComponent.Slider.Value = 0
+			sliderComponent.CurrentTime.SetText("0:00")
+			sliderComponent.CurrentTime.Refresh()
+			sliderComponent.Slider.Refresh()
 		}
 	})
 	nextBtn := widget.NewButton("=>", func() {
 		if currentSong < len(musicData)-1 {
 			currentSong++
 			updateSong()
+			sliderComponent.Slider.Value = 0
+			sliderComponent.CurrentTime.SetText("0:00")
+			sliderComponent.CurrentTime.Refresh()
+			sliderComponent.Slider.Refresh()
 		}
 	})
 	playBtn.Resize(fyne.NewSize(150, 50))
@@ -77,23 +79,11 @@ func main() {
 	)
 	background := canvas.NewRectangle(color.RGBA{50, 50, 50, 255})
 
-	slider := widget.NewSlider(0, 180) // 180 секунд — пример
-	slider.Value = 0
-	slider.Step = 1
-	slider.OnChanged = func(value float64) {
-		// Здесь можно обновлять отображение времени или перематывать трек
-	}
-
-	currentTime := widget.NewLabel("0:00")
-	totalTime := widget.NewLabel("3:00")
-	timeRow := container.NewHBox(currentTime, widget.NewLabel(" "), totalTime)
-
 	content := container.NewVBox(
 		musicCover,
 		title,
 		artist,
-		slider,
-		timeRow,
+		sliderComponent.Container,
 		btnContainer,
 	)
 
